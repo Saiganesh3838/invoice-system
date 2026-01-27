@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🛒 Smart Invoice System</title>
+  
+  <style>
+    :root { 
+      --primary: #1a73e8; 
+      --success: #34a853; 
+      --danger: #d93025; 
+      --gray: #5f6368; 
+      --bg: #f0f2f5;
+    }
+
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: var(--bg); 
+      margin: 0; padding: 20px; height: 100vh; box-sizing: border-box;
+    }
+
+    .app-container { 
+      background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+      max-width: 1400px; margin: auto; display: grid; grid-template-columns: 400px 1fr; 
+      gap: 25px; padding: 25px; min-height: 85vh;
+    }
+
+    .entry-panel { border-right: 1px solid #eee; padding-right: 20px; }
+    .bill-panel { display: flex; flex-direction: column; }
+
+    h1 { font-size: 1.6rem; color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+    
+    .input-group { background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 15px; }
+    label { font-size: 0.85rem; font-weight: bold; color: #444; display: block; margin-bottom: 8px; text-transform: uppercase; }
+    
+    input, select { 
+      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; 
+      font-size: 18px; box-sizing: border-box; margin-bottom: 15px; 
+    }
+
+    .search-container { position: relative; }
+    
+    #suggestions { 
+      position: absolute; width: 100%; background: white; border: 1px solid #ddd; 
+      max-height: 300px; overflow-y: auto; z-index: 1000; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .suggestion-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 1.1rem; }
+    .suggestion-item:hover { background-color: #f1f3f4; }
+    
+    .suggestion-item.active {
+      background-color: var(--primary) !important;
+      color: white;
+      border-left: 5px solid #000;
+    }
+
+    .row-flex { display: flex; gap: 12px; }
+    button { padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; color: white; transition: 0.2s; }
+    .add-btn { background: var(--primary); width: 100%; height: 55px; font-size: 1.1rem; }
+    .add-btn:hover { background: #1557b0; }
+    .print-btn { background: var(--success); width: 100%; margin-top: auto; padding: 15px; font-size: 1.2rem; }
+    .remove-btn { background: none; color: var(--danger); font-size: 22px; padding: 0; border:none; }
+
+    .table-scroll { flex-grow: 1; overflow-y: auto; max-height: 500px; border: 1px solid #eee; border-radius: 8px; margin-top: 10px;}
+    table { width: 100%; border-collapse: collapse; }
+    th { position: sticky; top: 0; background: #f1f3f4; padding: 15px; text-align: left; font-size: 0.9rem; z-index: 10; border-bottom: 2px solid #ddd; }
+    td { padding: 15px; border-bottom: 1px solid #eee; font-size: 1.1rem; }
+    
+    .summary-section { margin-top: 20px; padding: 20px; background: #f1f3f4; border-radius: 10px; }
+    .summary-row { display: flex; justify-content: flex-end; gap: 40px; margin-bottom: 5px; font-size: 1.1rem; }
+    .grand-total { text-align: right; font-size: 2.5rem; font-weight: bold; color: #000; margin-top: 10px; border-top: 3px solid #333; padding-top: 10px; }
+
+    #invoice-header { display: none; text-align: center; }
+    .fs-button { position: fixed; top: 10px; right: 10px; background: #5f6368; font-size: 12px; padding: 5px 10px; opacity: 0.7; }
+    
+    #sync-status { font-size: 13px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+    .refresh-badge { background: #eee; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .no-print, .fs-button, #sync-status { display: none !important; }
+      #invoice-header { display: block; }
+      .app-container { display: block; box-shadow: none; border: none; width: 100%; padding: 0; }
+      .table-scroll { overflow: visible; }
+      @page { size: 80mm auto; margin: 5mm; }
+    }
+  </style>
+</head>
+<body>
+
+<button class="fs-button no-print" onclick="toggleFullScreen()">Full Screen Mode</button>
+
+<div class="app-container">
+  <div class="entry-panel no-print">
+    <h1>🛒 Invoice Bill </h1>
+    <div id="sync-status">
+      <span id="status-text">🔄 Connecting to Google Sheets...</span>
+      <span class="refresh-badge" onclick="loadInventory()">REFRESH</span>
+    </div>
+    
+    <div class="input-group">
+      <label>Product Name</label>
+      <div class="search-container">
+        <input type="text" id="pSearch" placeholder="Search item..." onkeyup="handleSearch(event)" autocomplete="off">
+        <div id="suggestions"></div>
+      </div>
+
+      <div class="row-flex">
+        <div style="flex: 1;">
+          <label>Price (₹)</label>
+          <input type="number" id="pPrice" placeholder="0.00" step="0.01">
+        </div>
+        <div style="flex: 1;">
+          <label>Qty</label>
+          <input type="number" id="pQty" value="1" step="0.01">
+        </div>
+      </div>
+
+      <div class="row-flex">
+        <div style="flex: 1;">
+          <label>Unit</label>
+          <select id="pUnit">
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="pcs">pcs</option>
+            <option value="ltr">ltr</option>
+          </select>
+        </div>
+      </div>
+      
+      <button class="add-btn" onclick="addItem()">ADD TO BILL </button>
+    </div>
+  </div>
+
+  <div class="bill-panel">
+    <div id="invoice-header">
+        <h2 style="margin: 0;">CHENNA MALLESHWARA PROVISION STORE</h2>
+        <p style="margin: 5px 0;">Contact: +91 944101885</p>
+        <p>Date: <span id="pDate"></span> | Bill: #<span id="pInv"></span></p>
+        <hr>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 45%;">Items</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th style="text-align: right;">Total</th>
+            <th class="no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="billBody"></tbody>
+      </table>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-row"><span>Subtotal:</span><span id="subTotal">₹0.00</span></div>
+      <div class="grand-total">Total: ₹<span id="gTotal">0.00</span></div>
+      <button class="print-btn no-print" onclick="printInvoice()">🖨️ Print Receipt</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Paste your link here. 
+  const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQF6tUzPPv0vZI-8ZxzlPMqpAzBZ4QIovDhFDkTrObeCnAQ5uThQTyKT9a8l2la_pWaxEMtuPio0aIR/pub?output=csv';
+  
+  let inventory = [];
+  let invNo = parseInt(localStorage.getItem('mInv')) || 1001;
+  let currentFocus = -1;
+
+  async function loadInventory() {
+    const statusText = document.getElementById('status-text');
+    statusText.innerText = "🔄 Syncing...";
+    
+    try {
+      // Fetch data with a cache-buster to ensure we get the latest sheet version
+      const response = await fetch(GOOGLE_SHEET_CSV_URL + '&cache=' + new Date().getTime());
+      
+      if (!response.ok) throw new Error("Network issues");
+      
+      const data = await response.text();
+      
+      // Better CSV Parsing: handles quotes and commas
+      const rows = data.split(/\r?\n/);
+      inventory = rows.map(row => {
+          // Grabs first column, removes quotes and extra spaces
+          let firstCol = row.split(',')[0];
+          return firstCol.replace(/^"|"$/g, '').trim();
+      }).filter(item => item && item.toLowerCase() !== 'items' && item.toLowerCase() !== 'product name');
+
+      statusText.innerText = "✅ " + inventory.length + " Items Online";
+      statusText.parentElement.style.color = "var(--success)";
+      
+      // Save to local storage as a backup
+      localStorage.setItem('cachedInventory', JSON.stringify(inventory));
+      
+    } catch (e) {
+      console.error(e);
+      // Try to load from backup if offline
+      const backup = localStorage.getItem('cachedInventory');
+      if (backup) {
+        inventory = JSON.parse(backup);
+        statusText.innerText = "⚠️ Offline (Using Backup)";
+      } else {
+        statusText.innerText = "❌ Sync Failed (Check Internet)";
+      }
+      statusText.parentElement.style.color = "var(--danger)";
+    }
+  }
+
+  // Keyboard Navigation
+  document.addEventListener('keydown', function(e) {
+    const suggestions = document.getElementById("suggestions");
+    const items = suggestions.getElementsByClassName("suggestion-item");
+
+    if (e.key === "ArrowDown") {
+      currentFocus++;
+      addActive(items);
+    } else if (e.key === "ArrowUp") {
+      currentFocus--;
+      addActive(items);
+    } else if (e.key === "Enter") {
+      const pSearch = document.getElementById('pSearch');
+      if (document.activeElement === pSearch) {
+        e.preventDefault();
+        if (currentFocus > -1 && items.length > 0) {
+          items[currentFocus].click();
+        } else if (items.length > 0) {
+          items[0].click();
+        } else if (pSearch.value !== "") {
+          document.getElementById("pPrice").focus();
+        }
+      } else if (document.activeElement.id === "pPrice" || document.activeElement.id === "pQty") {
+        addItem();
+      }
+    }
+  });
+
+  function handleSearch(e) {
+    if (["ArrowDown", "ArrowUp", "Enter"].includes(e.key)) return;
+    searchItem();
+  }
+
+  function searchItem() {
+    let q = document.getElementById("pSearch").value.toLowerCase();
+    let s = document.getElementById("suggestions");
+    s.innerHTML = "";
+    currentFocus = -1;
+
+    if (q.length < 1) return;
+
+    // Filter and show top 15 results
+    let filtered = inventory.filter(n => n.toLowerCase().includes(q)).slice(0, 15);
+    
+    filtered.forEach((m) => {
+      let d = document.createElement("div");
+      d.className = "suggestion-item";
+      d.innerText = m;
+      d.onclick = () => {
+        document.getElementById("pSearch").value = m;
+        s.innerHTML = "";
+        document.getElementById("pPrice").focus();
+      };
+      s.appendChild(d);
+    });
+  }
+
+  function addActive(items) {
+    if (!items || items.length === 0) return;
+    removeActive(items);
+    if (currentFocus >= items.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = items.length - 1;
+    items[currentFocus].classList.add("active");
+    items[currentFocus].scrollIntoView({ block: "nearest" });
+  }
+
+  function removeActive(items) {
+    for (let i = 0; i < items.length; i++) {
+      items[i].classList.remove("active");
+    }
+  }
+
+  function addItem() {
+    let n = document.getElementById("pSearch").value;
+    let p = parseFloat(document.getElementById("pPrice").value);
+    let q = parseFloat(document.getElementById("pQty").value);
+    let u = document.getElementById("pUnit").value;
+    
+    if (!n || isNaN(p) || isNaN(q)) {
+        alert("Please fill all fields!");
+        return;
+    }
+
+    let calcQty = (u === 'g') ? q / 1000 : q;
+    let itemTotal = p * calcQty;
+
+    let tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${n}</strong></td>
+      <td>₹${p.toFixed(2)}</td>
+      <td>${q}${u}</td>
+      <td style="text-align: right;" class="r-tot" data-v="${itemTotal}">₹${itemTotal.toFixed(2)}</td>
+      <td class="no-print" style="text-align: center;">
+        <button class="remove-btn" onclick="this.parentElement.parentElement.remove(); calc();">✕</button>
+      </td>
+    `;
+    document.getElementById("billBody").appendChild(tr);
+    calc();
+    
+    // Clear inputs
+    document.getElementById("pSearch").value = "";
+    document.getElementById("pPrice").value = "";
+    document.getElementById("pQty").value = "1";
+    document.getElementById("pSearch").focus();
+  }
+
+  function calc() {
+    let subtotal = 0;
+    document.querySelectorAll(".r-tot").forEach(c => {
+        subtotal += parseFloat(c.dataset.v);
+    });
+    document.getElementById("subTotal").innerText = "₹" + subtotal.toFixed(2);
+    document.getElementById("gTotal").innerText = subtotal.toFixed(2);
+  }
+
+  function printInvoice() {
+    if(document.querySelectorAll("#billBody tr").length === 0) {
+        alert("Add some items first!");
+        return;
+    }
+    document.getElementById("pDate").innerText = new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    document.getElementById("pInv").innerText = invNo++;
+    localStorage.setItem('mInv', invNo);
+    window.print();
+  }
+
+  function toggleFullScreen() {
+    if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } 
+    else { document.exitFullscreen(); }
+  }
+
+  window.onclick = (e) => {
+    if (!e.target.matches('#pSearch')) document.getElementById("suggestions").innerHTML = "";
+  };
+
+  // Run on start
+  window.onload = loadInventory;
+</script>
+</body>
+</html>
