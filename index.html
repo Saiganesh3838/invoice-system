@@ -6,141 +6,97 @@
   <title>🛒 Smart Invoice System</title>
   
   <style>
-    /* 1. THEMES & COLORS */
     :root { 
       --primary: #1a73e8; 
       --success: #34a853; 
       --danger: #d93025; 
-      --bg: #f8f9fa;
-      --card-bg: #ffffff;
-      --text: #202124;
-      --border: #dadce0;
-      --input-bg: #ffffff;
-      --panel-border: #eeeeee;
-      --summary-bg: #f1f3f4;
-      --unit-btn-bg: #ffffff;
-    }
-
-    [data-theme="dark"] {
-      --bg: #121212;
-      --card-bg: #1e1e1e;
-      --text: #e8eaed;
-      --border: #3c4043;
-      --input-bg: #2d2e31;
-      --panel-border: #333333;
-      --summary-bg: #2d2e31;
-      --primary: #8ab4f8;
-      --unit-btn-bg: #2d2e31;
+      --gray: #5f6368; 
+      --bg: #f0f2f5;
     }
 
     body { 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
       background: var(--bg); 
-      color: var(--text);
       margin: 0; padding: 20px; height: 100vh; box-sizing: border-box;
-      transition: background 0.3s, color 0.3s;
     }
 
     .app-container { 
-      background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
-      max-width: 1400px; margin: auto; display: grid; grid-template-columns: 420px 1fr; 
-      gap: 25px; padding: 25px; min-height: 85vh; border: 1px solid var(--border);
+      background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+      max-width: 1400px; margin: auto; display: grid; grid-template-columns: 400px 1fr; 
+      gap: 25px; padding: 25px; min-height: 85vh;
     }
 
-    .entry-panel { border-right: 1px solid var(--panel-border); padding-right: 25px; }
+    .entry-panel { border-right: 1px solid #eee; padding-right: 20px; }
     .bill-panel { display: flex; flex-direction: column; }
 
-    h1 { font-size: 1.5rem; color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+    h1 { font-size: 1.6rem; color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
     
-    .input-group { background: var(--summary-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 15px; }
-    label { font-size: 0.8rem; font-weight: bold; opacity: 0.8; display: block; margin-bottom: 8px; text-transform: uppercase; }
+    .input-group { background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 15px; }
+    label { font-size: 0.85rem; font-weight: bold; color: #444; display: block; margin-bottom: 8px; text-transform: uppercase; }
     
-    input { 
-      width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; 
-      font-size: 18px; box-sizing: border-box; margin-bottom: 15px; background: var(--input-bg); color: var(--text);
+    input, select { 
+      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; 
+      font-size: 18px; box-sizing: border-box; margin-bottom: 15px; 
     }
 
-    /* UNIT SELECTOR */
-    .unit-selector { display: flex; gap: 8px; margin-bottom: 20px; }
-    .unit-btn {
-      flex: 1; padding: 12px; background: var(--unit-btn-bg); border: 2px solid var(--border);
-      color: var(--text); border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;
-    }
-    .unit-btn.active { background: var(--primary); color: #000 !important; border-color: var(--primary); }
-
-    /* SEARCH SUGGESTIONS */
     .search-container { position: relative; }
+    
     #suggestions { 
-      position: absolute; width: 100%; background: var(--card-bg); border: 1px solid var(--border); 
-      max-height: 300px; overflow-y: auto; z-index: 1000; border-radius: 8px;
+      position: absolute; width: 100%; background: white; border: 1px solid #ddd; 
+      max-height: 300px; overflow-y: auto; z-index: 1000; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .suggestion-item { padding: 15px; border-bottom: 1px solid var(--border); cursor: pointer; }
-    .suggestion-item.active { background-color: var(--primary) !important; color: #000; }
+    
+    .suggestion-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 1.1rem; }
+    .suggestion-item:hover { background-color: #f1f3f4; }
+    
+    .suggestion-item.active {
+      background-color: var(--primary) !important;
+      color: white;
+      border-left: 5px solid #000;
+    }
 
-    /* BUTTONS */
     .row-flex { display: flex; gap: 12px; }
-    button { padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    .add-btn { background: var(--primary); color: #000; width: 100%; height: 50px; margin-top: 10px; font-size: 1rem; }
-    
-    /* SMALL PRINT BUTTON STYLING */
-    .print-btn-container { text-align: center; margin-top: 20px; }
-    .print-btn { 
-      background: var(--success); 
-      color: white; 
-      padding: 10px 30px; 
-      font-size: 0.9rem; 
-      width: auto; 
-      min-width: 150px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .print-btn:hover { background: #2d8d46; transform: translateY(-1px); }
+    button { padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; color: white; transition: 0.2s; }
+    .add-btn { background: var(--primary); width: 100%; height: 55px; font-size: 1.1rem; }
+    .add-btn:hover { background: #1557b0; }
+    .print-btn { background: var(--success); width: 100%; margin-top: auto; padding: 15px; font-size: 1.2rem; }
+    .remove-btn { background: none; color: var(--danger); font-size: 22px; padding: 0; border:none; }
 
-    .remove-btn { background: none; color: var(--danger); font-size: 22px; padding: 0; }
-
-    .table-scroll { flex-grow: 1; overflow-y: auto; max-height: 480px; border: 1px solid var(--border); border-radius: 8px; margin-top: 10px;}
+    .table-scroll { flex-grow: 1; overflow-y: auto; max-height: 500px; border: 1px solid #eee; border-radius: 8px; margin-top: 10px;}
     table { width: 100%; border-collapse: collapse; }
-    th { position: sticky; top: 0; background: var(--summary-bg); padding: 15px; text-align: left; border-bottom: 2px solid var(--border); z-index: 5; }
-    td { padding: 15px; border-bottom: 1px solid var(--panel-border); font-size: 1.1rem; }
+    th { position: sticky; top: 0; background: #f1f3f4; padding: 15px; text-align: left; font-size: 0.9rem; z-index: 10; border-bottom: 2px solid #ddd; }
+    td { padding: 15px; border-bottom: 1px solid #eee; font-size: 1.1rem; }
     
-    .summary-section { margin-top: 20px; padding: 20px; background: var(--summary-bg); border-radius: 10px; }
-    .grand-total { text-align: right; font-size: 2.5rem; font-weight: bold; margin-top: 10px; border-top: 3px solid var(--text); padding-top: 10px; }
+    .summary-section { margin-top: 20px; padding: 20px; background: #f1f3f4; border-radius: 10px; }
+    .summary-row { display: flex; justify-content: flex-end; gap: 40px; margin-bottom: 5px; font-size: 1.1rem; }
+    .grand-total { text-align: right; font-size: 2.5rem; font-weight: bold; color: #000; margin-top: 10px; border-top: 3px solid #333; padding-top: 10px; }
 
-    /* UTILITY BUTTONS */
-    .theme-toggle-container { position: fixed; bottom: 20px; left: 20px; z-index: 2000; }
-    .theme-btn {
-      background: #fbbc04; color: black; border-radius: 50px; padding: 8px 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-size: 13px;
-    }
-    .fs-btn {
-      position: fixed; top: 10px; right: 10px; background: #5f6368; color: white;
-      font-size: 12px; padding: 6px 10px; opacity: 0.6;
-    }
-
-    #invoice-header { display: none; text-align: center; color: black !important; }
+    #invoice-header { display: none; text-align: center; }
+    .fs-button { position: fixed; top: 10px; right: 10px; background: #5f6368; font-size: 12px; padding: 5px 10px; opacity: 0.7; }
+    
+    #sync-status { font-size: 13px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+    .refresh-badge { background: #eee; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; }
 
     @media print {
-      .no-print, .theme-toggle-container, .fs-btn { display: none !important; }
+      body { background: white; padding: 0; }
+      .no-print, .fs-button, #sync-status { display: none !important; }
       #invoice-header { display: block; }
-      .app-container { display: block; background: white; border: none; padding: 0; }
-      td, th { color: black; border-color: #ddd; }
+      .app-container { display: block; box-shadow: none; border: none; width: 100%; padding: 0; }
+      .table-scroll { overflow: visible; }
       @page { size: 80mm auto; margin: 5mm; }
     }
   </style>
 </head>
 <body>
 
-<button class="fs-btn no-print" onclick="toggleFullScreen()">⛶ Full Screen</button>
-
-<div class="theme-toggle-container no-print">
-  <button class="theme-btn" onclick="toggleTheme()">🌓 Switch Theme</button>
-</div>
+<button class="fs-button no-print" onclick="toggleFullScreen()">Full Screen Mode</button>
 
 <div class="app-container">
   <div class="entry-panel no-print">
-    <h1>🛒 Smart Invoice</h1>
-    <div id="sync-status" style="font-size: 12px; margin-bottom: 10px; display: flex; justify-content: space-between;">
-      <span id="status-text">🔄 Syncing...</span>
-      <span style="color:var(--primary); cursor: pointer;" onclick="loadInventory()">REFRESH</span>
+    <h1>🛒 Invoice Bill </h1>
+    <div id="sync-status">
+      <span id="status-text">🔄 Connecting to Google Sheets...</span>
+      <span class="refresh-badge" onclick="loadInventory()">REFRESH</span>
     </div>
     
     <div class="input-group">
@@ -161,15 +117,19 @@
         </div>
       </div>
 
-      <label>Select Unit</label>
-      <div class="unit-selector">
-        <button class="unit-btn active" onclick="setUnit('kg', this)">kg</button>
-        <button class="unit-btn" onclick="setUnit('g', this)">g</button>
-        <button class="unit-btn" onclick="setUnit('pcs', this)">pcs</button>
-        <button class="unit-btn" onclick="setUnit('ltr', this)">ltr</button>
+      <div class="row-flex">
+        <div style="flex: 1;">
+          <label>Unit</label>
+          <select id="pUnit">
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="pcs">pcs</option>
+            <option value="ltr">ltr</option>
+          </select>
+        </div>
       </div>
       
-      <button class="add-btn" onclick="addItem()">ADD TO BILL (Enter)</button>
+      <button class="add-btn" onclick="addItem()">ADD TO BILL </button>
     </div>
   </div>
 
@@ -199,114 +159,195 @@
     <div class="summary-section">
       <div class="summary-row"><span>Subtotal:</span><span id="subTotal">₹0.00</span></div>
       <div class="grand-total">Total: ₹<span id="gTotal">0.00</span></div>
-      <div class="print-btn-container no-print">
-        <button class="print-btn" onclick="printInvoice()">🖨️ Print Receipt</button>
-      </div>
+      <button class="print-btn no-print" onclick="printInvoice()">🖨️ Print Receipt</button>
     </div>
   </div>
 </div>
 
 <script>
-  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQF6tUzPPv0vZI-8ZxzlPMqpAzBZ4QIovDhFDkTrObeCnAQ5uThQTyKT9a8l2la_pWaxEMtuPio0aIR/pub?output=csv';
-  let inventory = [], invNo = parseInt(localStorage.getItem('mInv')) || 1001, currentFocus = -1, selectedUnit = 'kg';
-
-  function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    const target = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', target);
-    localStorage.setItem('theme', target);
-  }
-  if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  // Paste your link here. 
+  const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQF6tUzPPv0vZI-8ZxzlPMqpAzBZ4QIovDhFDkTrObeCnAQ5uThQTyKT9a8l2la_pWaxEMtuPio0aIR/pub?output=csv';
+  
+  let inventory = [];
+  let invNo = parseInt(localStorage.getItem('mInv')) || 1001;
+  let currentFocus = -1;
 
   async function loadInventory() {
-    const st = document.getElementById('status-text');
+    const statusText = document.getElementById('status-text');
+    statusText.innerText = "🔄 Syncing...";
+    
     try {
-      const res = await fetch(CSV_URL + '&cb=' + Date.now());
-      const data = await res.text();
-      inventory = data.split(/\r?\n/).map(r => r.split(',')[0].replace(/^"|"$/g, '').trim()).filter(i => i && !['items','product name'].includes(i.toLowerCase()));
-      st.innerText = "✅ Synced";
+      // Fetch data with a cache-buster to ensure we get the latest sheet version
+      const response = await fetch(GOOGLE_SHEET_CSV_URL + '&cache=' + new Date().getTime());
+      
+      if (!response.ok) throw new Error("Network issues");
+      
+      const data = await response.text();
+      
+      // Better CSV Parsing: handles quotes and commas
+      const rows = data.split(/\r?\n/);
+      inventory = rows.map(row => {
+          // Grabs first column, removes quotes and extra spaces
+          let firstCol = row.split(',')[0];
+          return firstCol.replace(/^"|"$/g, '').trim();
+      }).filter(item => item && item.toLowerCase() !== 'items' && item.toLowerCase() !== 'product name');
+
+      statusText.innerText = "✅ " + inventory.length + " Items Online";
+      statusText.parentElement.style.color = "var(--success)";
+      
+      // Save to local storage as a backup
       localStorage.setItem('cachedInventory', JSON.stringify(inventory));
+      
     } catch (e) {
-      inventory = JSON.parse(localStorage.getItem('cachedInventory')) || [];
-      st.innerText = "⚠️ Offline";
+      console.error(e);
+      // Try to load from backup if offline
+      const backup = localStorage.getItem('cachedInventory');
+      if (backup) {
+        inventory = JSON.parse(backup);
+        statusText.innerText = "⚠️ Offline (Using Backup)";
+      } else {
+        statusText.innerText = "❌ Sync Failed (Check Internet)";
+      }
+      statusText.parentElement.style.color = "var(--danger)";
     }
   }
 
-  function setUnit(u, b) {
-    selectedUnit = u;
-    document.querySelectorAll('.unit-btn').forEach(btn => btn.classList.remove('active'));
-    b.classList.add('active');
-  }
+  // Keyboard Navigation
+  document.addEventListener('keydown', function(e) {
+    const suggestions = document.getElementById("suggestions");
+    const items = suggestions.getElementsByClassName("suggestion-item");
 
-  document.addEventListener('keydown', (e) => {
-    const suggs = document.getElementById("suggestions");
-    const items = suggs.getElementsByClassName("suggestion-item");
-    if (e.key === "ArrowDown") { currentFocus++; addActive(items); }
-    else if (e.key === "ArrowUp") { currentFocus--; addActive(items); }
-    else if (e.key === "Enter") {
-      const activeEl = document.activeElement;
-      if (activeEl.id === 'pSearch') {
-        if (currentFocus > -1) items[currentFocus].click();
-        else if (items.length > 0) items[0].click();
-        else if (activeEl.value) document.getElementById("pPrice").focus();
-      } else if (activeEl.id === "pPrice") document.getElementById("pQty").focus();
-      else if (activeEl.id === "pQty") document.querySelector('.unit-btn').focus();
-      else if (activeEl.classList.contains('unit-btn')) { activeEl.click(); addItem(); }
+    if (e.key === "ArrowDown") {
+      currentFocus++;
+      addActive(items);
+    } else if (e.key === "ArrowUp") {
+      currentFocus--;
+      addActive(items);
+    } else if (e.key === "Enter") {
+      const pSearch = document.getElementById('pSearch');
+      if (document.activeElement === pSearch) {
+        e.preventDefault();
+        if (currentFocus > -1 && items.length > 0) {
+          items[currentFocus].click();
+        } else if (items.length > 0) {
+          items[0].click();
+        } else if (pSearch.value !== "") {
+          document.getElementById("pPrice").focus();
+        }
+      } else if (document.activeElement.id === "pPrice" || document.activeElement.id === "pQty") {
+        addItem();
+      }
     }
   });
 
-  function handleSearch(e) { if (!["ArrowDown", "ArrowUp", "Enter"].includes(e.key)) searchItem(); }
+  function handleSearch(e) {
+    if (["ArrowDown", "ArrowUp", "Enter"].includes(e.key)) return;
+    searchItem();
+  }
 
   function searchItem() {
-    let q = document.getElementById("pSearch").value.toLowerCase(), s = document.getElementById("suggestions");
-    s.innerHTML = ""; currentFocus = -1;
+    let q = document.getElementById("pSearch").value.toLowerCase();
+    let s = document.getElementById("suggestions");
+    s.innerHTML = "";
+    currentFocus = -1;
+
     if (q.length < 1) return;
-    inventory.filter(n => n.toLowerCase().includes(q)).slice(0,12).forEach(m => {
-      let d = document.createElement("div"); d.className = "suggestion-item"; d.innerText = m;
-      d.onclick = () => { document.getElementById("pSearch").value = m; s.innerHTML = ""; document.getElementById("pPrice").focus(); };
+
+    // Filter and show top 15 results
+    let filtered = inventory.filter(n => n.toLowerCase().includes(q)).slice(0, 15);
+    
+    filtered.forEach((m) => {
+      let d = document.createElement("div");
+      d.className = "suggestion-item";
+      d.innerText = m;
+      d.onclick = () => {
+        document.getElementById("pSearch").value = m;
+        s.innerHTML = "";
+        document.getElementById("pPrice").focus();
+      };
       s.appendChild(d);
     });
   }
 
   function addActive(items) {
-    if (!items.length) return;
-    [...items].forEach(i => i.classList.remove("active"));
-    currentFocus = (currentFocus + items.length) % items.length;
+    if (!items || items.length === 0) return;
+    removeActive(items);
+    if (currentFocus >= items.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = items.length - 1;
     items[currentFocus].classList.add("active");
+    items[currentFocus].scrollIntoView({ block: "nearest" });
+  }
+
+  function removeActive(items) {
+    for (let i = 0; i < items.length; i++) {
+      items[i].classList.remove("active");
+    }
   }
 
   function addItem() {
-    let n = document.getElementById("pSearch").value, p = parseFloat(document.getElementById("pPrice").value), q = parseFloat(document.getElementById("pQty").value);
-    if (!n || isNaN(p) || isNaN(q)) return alert("Check inputs!");
-    let total = p * (selectedUnit === 'g' ? q / 1000 : q);
+    let n = document.getElementById("pSearch").value;
+    let p = parseFloat(document.getElementById("pPrice").value);
+    let q = parseFloat(document.getElementById("pQty").value);
+    let u = document.getElementById("pUnit").value;
+    
+    if (!n || isNaN(p) || isNaN(q)) {
+        alert("Please fill all fields!");
+        return;
+    }
+
+    let calcQty = (u === 'g') ? q / 1000 : q;
+    let itemTotal = p * calcQty;
+
     let tr = document.createElement("tr");
-    tr.innerHTML = `<td><strong>${n}</strong></td><td>₹${p.toFixed(2)}</td><td>${q}${selectedUnit}</td><td style="text-align:right" class="r-tot" data-v="${total}">₹${total.toFixed(2)}</td><td class="no-print" style="text-align:center"><button class="remove-btn" onclick="this.parentElement.parentElement.remove(); calc();">✕</button></td>`;
+    tr.innerHTML = `
+      <td><strong>${n}</strong></td>
+      <td>₹${p.toFixed(2)}</td>
+      <td>${q}${u}</td>
+      <td style="text-align: right;" class="r-tot" data-v="${itemTotal}">₹${itemTotal.toFixed(2)}</td>
+      <td class="no-print" style="text-align: center;">
+        <button class="remove-btn" onclick="this.parentElement.parentElement.remove(); calc();">✕</button>
+      </td>
+    `;
     document.getElementById("billBody").appendChild(tr);
     calc();
-    document.getElementById("pSearch").value = ""; document.getElementById("pPrice").value = ""; document.getElementById("pQty").value = "1";
-    setUnit('kg', document.querySelector('.unit-btn')); document.getElementById("pSearch").focus();
+    
+    // Clear inputs
+    document.getElementById("pSearch").value = "";
+    document.getElementById("pPrice").value = "";
+    document.getElementById("pQty").value = "1";
+    document.getElementById("pSearch").focus();
   }
 
   function calc() {
-    let sub = 0; document.querySelectorAll(".r-tot").forEach(c => sub += parseFloat(c.dataset.v));
-    document.getElementById("subTotal").innerText = "₹" + sub.toFixed(2);
-    document.getElementById("gTotal").innerText = sub.toFixed(2);
+    let subtotal = 0;
+    document.querySelectorAll(".r-tot").forEach(c => {
+        subtotal += parseFloat(c.dataset.v);
+    });
+    document.getElementById("subTotal").innerText = "₹" + subtotal.toFixed(2);
+    document.getElementById("gTotal").innerText = subtotal.toFixed(2);
   }
 
   function printInvoice() {
-    if(!document.querySelectorAll("#billBody tr").length) return;
-    document.getElementById("pDate").innerText = new Date().toLocaleString();
+    if(document.querySelectorAll("#billBody tr").length === 0) {
+        alert("Add some items first!");
+        return;
+    }
+    document.getElementById("pDate").innerText = new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     document.getElementById("pInv").innerText = invNo++;
     localStorage.setItem('mInv', invNo);
     window.print();
   }
 
   function toggleFullScreen() {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else document.exitFullscreen();
+    if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } 
+    else { document.exitFullscreen(); }
   }
 
-  window.onclick = (e) => { if (!e.target.matches('#pSearch')) document.getElementById("suggestions").innerHTML = ""; };
+  window.onclick = (e) => {
+    if (!e.target.matches('#pSearch')) document.getElementById("suggestions").innerHTML = "";
+  };
+
+  // Run on start
   window.onload = loadInventory;
 </script>
 </body>
