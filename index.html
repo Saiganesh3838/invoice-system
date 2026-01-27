@@ -224,7 +224,7 @@
       const res = await fetch(CSV_URL + '&cb=' + Date.now());
       const data = await res.text();
       inventory = data.split(/\r?\n/).map(r => r.split(',')[0].replace(/^"|"$/g, '').trim()).filter(i => i && !['items','product name'].includes(i.toLowerCase()));
-      st.innerText = "✅ Synced";
+      st.innerText = "✅ " + inventory.length + "Items online";
       localStorage.setItem('cachedInventory', JSON.stringify(inventory));
     } catch (e) {
       inventory = JSON.parse(localStorage.getItem('cachedInventory')) || [];
