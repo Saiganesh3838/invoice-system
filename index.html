@@ -195,7 +195,10 @@
     inventory.filter(i => i.name.toLowerCase().includes(q)).slice(0,8).forEach(item => {
       let d = document.createElement('div');
       d.className = 'suggestion-item';
-      d.innerText = `${item.name} (₹${item.price})`;
+      
+      // FIXED: Only shows product name, no price in brackets
+      d.innerText = item.name; 
+      
       d.onclick = () => {
         document.getElementById('pSearch').value = item.name;
         document.getElementById('pMRP').value = item.price;
@@ -206,7 +209,6 @@
     });
   });
 
-  // New function: Selects unit and adds item instantly
   function quickAdd(u, btn) {
     selectedUnit = u;
     addItem();
@@ -218,13 +220,12 @@
     const qty = parseFloat(document.getElementById('pQty').value);
     if (!name || isNaN(mrp)) return;
 
-    const actualQty = selectedUnit === 'g' ? qty / 1000 : qty;
+    const actualQty = selectedUnit === 'grams' ? qty / 1000 : qty;
     const lineTotal = mrp * actualQty;
 
     itemsInBill.push({ name, qty, unit: selectedUnit, mrp, lineTotal });
     updateBill();
     
-    // Reset and jump back to search for speed
     document.getElementById('pSearch').value = "";
     document.getElementById('pMRP').value = "";
     document.getElementById('pQty').value = "1";
@@ -286,4 +287,3 @@
 </script>
 </body>
 </html>
-
