@@ -183,7 +183,7 @@
         const cols = row.split(',');
         return { name: cols[0]?.trim(), price: parseFloat(cols[1]) || 0 };
       }).filter(i => i.name);
-      document.getElementById('sync-status').innerText = "✅ Inventory Ready";
+      document.getElementById('sync-status').innerText = "✅ " + inventory.length + " Items Online";
     } catch (e) { document.getElementById('sync-status').innerText = "⚠️ Offline"; }
   }
 
@@ -286,3 +286,4 @@
 </script>
 </body>
 </html>
+
