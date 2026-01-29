@@ -109,12 +109,12 @@
         </div>
       </div>
 
-      <label>Select Unit (Add to invoice)</label>
+      <label>Select Unit (Adds to Bill)</label>
       <div class="unit-selector">
-        <button class="unit-btn" onclick="quickAdd('Kg', this)">KG</button>
-        <button class="unit-btn" onclick="quickAdd('grams', this)">GM</button>
-        <button class="unit-btn" onclick="quickAdd('pcs', this)">PCS</button>
-        <button class="unit-btn" onclick="quickAdd('ltr', this)">L</button>
+        <button class="unit-btn" onclick="quickAdd('Kg')">KG</button>
+        <button class="unit-btn" onclick="quickAdd('grams')">GM</button>
+        <button class="unit-btn" onclick="quickAdd('pcs')">PCS</button>
+        <button class="unit-btn" onclick="quickAdd('ltr')">L</button>
       </div>
 
       <button class="add-btn" onclick="addItem()">ADD TO INVOICE (ENTER)</button>
@@ -157,7 +157,7 @@
     </div>
 
     <div style="text-align: center; margin-top: 15px; font-size: 0.75rem; border-top: 1px dashed var(--table-text); padding-top: 5px;">
-      <p>THANK YOU. VISIT AGAIN!</p>
+      <p>🙏 THANK YOU. VISIT AGAIN 😊</p>
     </div>
   </div>
 </div>
@@ -169,7 +169,7 @@
   
   let inventory = [];
   let itemsInBill = [];
-  let selectedUnit = 'kg';
+  let selectedUnit = 'Kg';
   let qrcode = new QRCode(document.getElementById("qrcode"), { width: 100, height: 100 });
 
   document.getElementById('billDate').innerText = new Date().toLocaleDateString();
@@ -187,6 +187,7 @@
     } catch (e) { document.getElementById('sync-status').innerText = "⚠️ Offline"; }
   }
 
+  // Handle Suggestions
   document.getElementById('pSearch').addEventListener('input', (e) => {
     let q = e.target.value.toLowerCase();
     let s = document.getElementById('suggestions');
@@ -195,30 +196,53 @@
     inventory.filter(i => i.name.toLowerCase().includes(q)).slice(0,8).forEach(item => {
       let d = document.createElement('div');
       d.className = 'suggestion-item';
-      
-      // FIXED: Only shows product name, no price in brackets
       d.innerText = item.name; 
-      
       d.onclick = () => {
         document.getElementById('pSearch').value = item.name;
-        document.getElementById('pMRP').value = item.price;
         s.innerHTML = '';
-        document.getElementById('pQty').focus();
+        document.getElementById('pMRP').focus(); // Move to MRP after selection
       };
       s.appendChild(d);
     });
   });
 
-  function quickAdd(u, btn) {
+  // STEP-BY-STEP ENTER KEY NAVIGATION
+  document.getElementById('pSearch').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('pMRP').focus();
+    }
+  });
+
+  document.getElementById('pMRP').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('pQty').focus();
+    }
+  });
+
+  document.getElementById('pQty').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') {
+        e.preventDefault();
+        addItem(); // Final step: Add to bill
+    }
+  });
+
+  // Direct Unit Click to Add
+  function quickAdd(u) {
     selectedUnit = u;
-    addItem();
+    addItem(); 
   }
 
   function addItem() {
     const name = document.getElementById('pSearch').value;
     const mrp = parseFloat(document.getElementById('pMRP').value);
     const qty = parseFloat(document.getElementById('pQty').value);
-    if (!name || isNaN(mrp)) return;
+    
+    if (!name || isNaN(mrp)) {
+        alert("Please enter Name and MRP price");
+        return;
+    }
 
     const actualQty = selectedUnit === 'grams' ? qty / 1000 : qty;
     const lineTotal = mrp * actualQty;
@@ -226,9 +250,11 @@
     itemsInBill.push({ name, qty, unit: selectedUnit, mrp, lineTotal });
     updateBill();
     
+    // Reset fields and return to Name
     document.getElementById('pSearch').value = "";
     document.getElementById('pMRP').value = "";
     document.getElementById('pQty').value = "1";
+    selectedUnit = 'Kg'; 
     document.getElementById('pSearch').focus();
   }
 
